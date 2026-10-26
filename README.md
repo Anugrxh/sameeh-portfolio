@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sameeh K — Portfolio
 
-## Getting Started
+Single-page portfolio built with Next.js 16 (App Router), React 19, Tailwind CSS v4 and Motion. Dark theme with a liquid-glass look, responsive from phone to desktop.
 
-First, run the development server:
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build (also type-checks)
+npm run start    # serve the production build
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Editing content
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+All copy lives in `src/data`. Nothing in the components is hard-coded, so updating the resume means editing these files only:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| File | What it holds |
+| --- | --- |
+| `src/data/profile.ts` | Name, roles, intro, contact details, links, the three "pillar" cards, and the hero visual (`pipeline` steps, `stack` ticker, `timeZone`) |
+| `src/data/experience.ts` | Work history (bullets, stack chips, dates) |
+| `src/data/projects.ts` | Projects. Set `link` on a project to show a "View project" link |
+| `src/data/skills.ts` | Skill groups and their icons |
+| `src/data/education.ts` | Education, certifications, organizations |
+| `src/config/site.ts` | Navbar items and section ids |
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    layout.tsx            root layout, fonts, metadata
+    page.tsx              composes the sections in order
+    globals.css           theme tokens, glass utilities, base styles
+    icon.svg              favicon
+  components/
+    layout/               navbar, ambient background, footer
+    sections/             hero (+ hero-visual bento), about, skills, experience, projects, education, contact
+    ui/                   glass card, buttons, chips, reveal animation, section heading, icons
+  config/site.ts          navigation config
+  data/                   all portfolio content
+  lib/                    cn() helper, active-section hook
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Glass surfaces are the `glass`, `glass-dense` and `glass-chip` utilities in `globals.css`. On Chromium the backdrop is refracted through the SVG filter in `liquid-glass-filter.tsx` (displacement map in `src/lib/lens-map.ts`); other browsers get a plain blur with the same specular rim.
+- Scroll reveals use the `Reveal` component (Motion `whileInView`, runs once).
+- `prefers-reduced-motion` disables the drifting background, tilt and reveals.
+- The site is fully static: `next build` prerenders the one route.
+# sameeh-portfolio
