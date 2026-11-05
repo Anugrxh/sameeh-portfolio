@@ -1,26 +1,250 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-ink: #050507;
+  --color-fg: #f5f5f7;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-accent: #7cc4ff;
+  --color-accent-strong: #3b9eff;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --animate-drift-a: drift-a 26s ease-in-out infinite alternate;
+  --animate-drift-b: drift-b 34s ease-in-out infinite alternate;
+  --animate-drift-c: drift-c 40s ease-in-out infinite alternate;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-ping-soft: ping-soft 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-marquee: marquee 26s linear infinite;
+  --animate-travel: travel 6s linear infinite;
+  --animate-node-glow: node-glow 6s linear infinite;
+
+  @keyframes drift-a {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(10vw, 8vh, 0) scale(1.12); }
+  }
+  @keyframes drift-b {
+    from { transform: translate3d(0, 0, 0) scale(1.05); }
+    to { transform: translate3d(-8vw, -10vh, 0) scale(0.95); }
+  }
+  @keyframes drift-c {
+    from { transform: translate3d(0, 0, 0) scale(0.95); }
+    to { transform: translate3d(6vw, -6vh, 0) scale(1.1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes ping-soft {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  /* A light pulse travelling along the pipeline track, node centres at 10%..90%. */
+  @keyframes travel {
+    0% { left: 10%; opacity: 0; }
+    4% { opacity: 1; }
+    79% { opacity: 1; }
+    83.3% { left: 90%; opacity: 0; }
+    100% { left: 90%; opacity: 0; }
+  }
+  @keyframes node-glow {
+    0%, 100% { color: rgba(245, 245, 247, 0.55); border-color: rgba(255, 255, 255, 0.09); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+    3% { color: #fff; border-color: rgba(124, 196, 255, 0.6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 18px rgba(124, 196, 255, 0.35); }
+    16% { color: rgba(245, 245, 247, 0.55); border-color: rgba(255, 255, 255, 0.09); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6.5rem;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-ink);
+    color: var(--color-fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11", "liga";
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 40%, transparent);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-accent) 80%, transparent);
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    [class*="animate-"] {
+      animation: none !important;
+    }
+  }
+}
+
+/* Liquid glass: near-clear fill, a specular rim that catches light on the
+   top-left and bottom-right edges, and inner highlights that read as a thick
+   glass edge. Chromium additionally bends the backdrop through #liquid-lens. */
+@utility glass {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02));
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  backdrop-filter: blur(14px) saturate(170%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 24px 60px -28px rgba(0, 0, 0, 0.8);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1.5px;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.14) 26%,
+      rgba(255, 255, 255, 0.04) 50%,
+      rgba(255, 255, 255, 0.16) 74%,
+      rgba(255, 255, 255, 0.6) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 2px 2px 2px -1px rgba(255, 255, 255, 0.42),
+      inset -2px -2px 2px -1px rgba(255, 255, 255, 0.26),
+      inset 0 0 0 5px rgba(255, 255, 255, 0.025),
+      inset 0 0 18px 6px rgba(255, 255, 255, 0.06),
+      inset 0 -14px 28px -18px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* Same glass with a darker tint so navbar text stays readable over anything. */
+@utility glass-dense {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, rgba(22, 22, 30, 0.5), rgba(8, 8, 12, 0.42));
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 18px 50px -20px rgba(0, 0, 0, 0.9);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1.5px;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.75) 0%,
+      rgba(255, 255, 255, 0.16) 26%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.18) 74%,
+      rgba(255, 255, 255, 0.62) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 2px 2px 2px -1px rgba(255, 255, 255, 0.42),
+      inset -2px -2px 2px -1px rgba(255, 255, 255, 0.26),
+      inset 0 0 20px 3px rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Thin glass pill used for chips and small labels (no backdrop, cheap). */
+@utility glass-chip {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Chromium: refract the backdrop through the SVG lens instead of a flat blur.
+   Large panels that sit over body text opt out with `lens-off`, since the clear
+   rim would otherwise show readable fragments. */
+:root[data-lens="true"] .glass:not(.lens-off),
+:root[data-lens="true"] .glass-dense:not(.lens-off) {
+  -webkit-backdrop-filter: url(#liquid-lens);
+  backdrop-filter: url(#liquid-lens);
+}
+
+@utility lens-off {
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+}
+
+@utility noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+}
+
+@utility text-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.72) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility container-x {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
 }
